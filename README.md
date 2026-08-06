@@ -49,7 +49,7 @@ js/app.js       – UI: loading, parameters, rendering, export
 
 ## Author
 
-Maciek Miasik
+Tool created by Claude Code (Fable) under the supervision of Maciej Miąsik ([miasik.net](https://miasik.net)).
 
 ## License
 
