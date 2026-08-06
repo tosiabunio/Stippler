@@ -21,6 +21,7 @@
     btnExport: $('btn-export'),
     btnOriginal: $('btn-original'),
     btnFit: $('btn-fit'),
+    btnZoom100: $('btn-zoom100'),
     previewArea: $('preview-area'),
     dropHint: $('drop-hint'),
     canvasWrap: $('canvas-wrap'),
@@ -221,6 +222,10 @@
 
   els.btnExport.addEventListener('click', exportPng);
   els.btnFit.addEventListener('click', fitZoom);
+  els.btnZoom100.addEventListener('click', () => {
+    state.zoom = 1;
+    applyZoom();
+  });
 
   // Podgląd oryginału: przytrzymanie przycisku lub spacji
   function showOriginal(show) {
