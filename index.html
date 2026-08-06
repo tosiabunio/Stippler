@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DitherTool — 1-bit dithering with transparency</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<aside id="sidebar">
+  <h1>DitherTool</h1>
+
+  <section>
+    <button id="btn-open" class="primary">Load image…</button>
+    <input type="file" id="file-input" accept="image/*" hidden>
+    <div id="file-name" class="hint">no file — drag a PNG onto the window</div>
+  </section>
+
+  <section>
+    <label for="algorithm">Algorithm</label>
+    <select id="algorithm">
+      <optgroup label="Error diffusion">
+        <option value="floyd-steinberg" selected>Floyd–Steinberg</option>
+        <option value="jarvis">Jarvis–Judice–Ninke</option>
+        <option value="stucki">Stucki</option>
+        <option value="atkinson">Atkinson</option>
+        <option value="burkes">Burkes</option>
+        <option value="sierra">Sierra</option>
+        <option value="sierra-two-row">Sierra Two-Row</option>
+        <option value="sierra-lite">Sierra Lite</option>
+      </optgroup>
+      <optgroup label="Ordered">
+        <option value="bayer-2">Bayer 2×2</option>
+        <option value="bayer-4">Bayer 4×4</option>
+        <option value="bayer-8">Bayer 8×8</option>
+        <option value="halftone">Halftone (clustered dot)</option>
+      </optgroup>
+      <optgroup label="Basic">
+        <option value="threshold">Threshold</option>
+        <option value="random">Random noise</option>
+      </optgroup>
+    </select>
+  </section>
+
+  <section>
+    <label>Threshold <output for="threshold">128</output></label>
+    <input type="range" id="threshold" min="0" max="255" value="128">
+
+    <label>Brightness <output for="brightness">0</output></label>
+    <input type="range" id="brightness" min="-128" max="128" value="0">
+
+    <label>Contrast <output for="contrast">0</output></label>
+    <input type="range" id="contrast" min="-128" max="128" value="0">
+
+    <label>Gamma <output for="gamma">1.0</output></label>
+    <input type="range" id="gamma" min="0.2" max="3" step="0.05" value="1">
+
+    <label id="row-strength">Dither strength <output for="strength">100%</output></label>
+    <input type="range" id="strength" min="0" max="100" value="100">
+
+    <label>Pixel scale <output for="pixel-scale">1</output></label>
+    <input type="range" id="pixel-scale" min="1" max="16" value="1">
+
+    <label>Alpha threshold <output for="alpha-threshold">128</output></label>
+    <input type="range" id="alpha-threshold" min="1" max="255" value="128">
+
+    <label class="check"><input type="checkbox" id="invert"> Invert</label>
+    <label class="check" id="row-serpentine"><input type="checkbox" id="serpentine"> Serpentine</label>
+  </section>
+
+  <section>
+    <button id="btn-reset">Reset parameters</button>
+    <button id="btn-export" class="primary" disabled>Export PNG</button>
+  </section>
+
+  <section class="hint">
+    Hold <kbd>Space</kbd> or the button below to see the original.
+    Zoom: mouse wheel over the preview.
+    <button id="btn-original">Show original (hold)</button>
+    <button id="btn-fit">Fit zoom</button>
+  </section>
+</aside>
+
+<main id="preview-area">
+  <div id="drop-hint">Drag &amp; drop a PNG file here</div>
+  <div id="canvas-wrap" hidden>
+    <canvas id="canvas-output"></canvas>
+    <canvas id="canvas-original" hidden></canvas>
+  </div>
+</main>
+
+<script src="js/dither.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
