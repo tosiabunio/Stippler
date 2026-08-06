@@ -1,8 +1,10 @@
-# DitherTool
+# Stippler
 
-A zero-dependency, browser-based tool that converts color PNG images (with transparency) into pure 1-bit black & white images — with the alpha channel binarized, so every output pixel is either fully opaque black/white or fully transparent. Handy for game sprites, pixel art, e-ink displays, and print-style graphics.
+A zero-dependency, browser-based tool that converts color PNG images (with transparency) into pure 1-bit black & white images — with the alpha channel binarized, so every output pixel is either fully opaque black/white or fully transparent.
 
-![DitherTool screenshot](docs/screenshot.jpg)
+Built to convert sprites for [Playdate](https://play.date/) ports of PC DOS games — the Playdate has a 1-bit black & white screen, and its sprites use exactly this format: two colors plus a binary transparency mask. Also handy for pixel art, e-ink displays, and print-style graphics.
+
+![Stippler screenshot](docs/screenshot.jpg)
 
 ## Features
 
