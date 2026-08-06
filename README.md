@@ -4,6 +4,8 @@ A zero-dependency, browser-based tool that converts color PNG images (with trans
 
 Built to convert sprites for [Playdate](https://play.date/) ports of PC DOS games — the Playdate has a 1-bit black & white screen, and its sprites use exactly this format: two colors plus a binary transparency mask. Also handy for pixel art, e-ink displays, and print-style graphics.
 
+**[▶ Use it in your browser](https://tosiabunio.github.io/Stippler/)** — no install needed.
+
 ![Stippler screenshot](docs/screenshot.jpg)
 
 ## Features
