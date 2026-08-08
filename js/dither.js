@@ -62,17 +62,62 @@ const DITHER = (() => {
     return m;
   }
 
-  // --- Klasyczna macierz clustered-dot 8×8 (raster drukarski), wartości 0..63 ---
-  const HALFTONE_8 = [
-    [24, 10, 12, 26, 35, 47, 49, 37],
-    [8, 0, 2, 14, 45, 59, 61, 51],
-    [22, 6, 4, 16, 43, 57, 63, 53],
-    [30, 18, 20, 28, 33, 41, 55, 39],
-    [34, 46, 48, 36, 25, 11, 13, 27],
-    [44, 58, 60, 50, 9, 1, 3, 15],
-    [42, 56, 62, 52, 23, 7, 5, 17],
-    [32, 40, 54, 38, 31, 19, 21, 29],
-  ];
+  // --- Raster halftone z funkcji plamki ---
+  // Zamiast stałej macierzy 8×8 liczymy próg analitycznie, więc rozmiar komórki
+  // i kąt rastra są dowolne, a ekran działa w pełnej rozdzielczości obrazu.
+
+  const COS_N = 4096;
+  const COS_LUT = Float32Array.from(
+    { length: COS_N }, (_, i) => Math.cos(2 * Math.PI * i / COS_N));
+
+  // Funkcja plamki: maksimum (1) w środku kropki, minimum (-1) w środku prześwitu.
+  const spot = (u, v) => 0.5 * (Math.cos(2 * Math.PI * u) + Math.cos(2 * Math.PI * v));
+
+  const EQ_N = 512;
+
+  /**
+   * Buduje ekran rastrowy. Zwraca funkcję (x, y) → próg 0..1,
+   * gdzie 0 = środek kropki (czernieje pierwszy), 1 = środek prześwitu.
+   */
+  function buildHalftoneScreen(size, angleDeg) {
+    const cell = Math.max(2, size || 8);
+    const rad = (angleDeg || 0) * Math.PI / 180;
+    const ca = Math.cos(rad) / cell;
+    const sa = Math.sin(rad) / cell;
+
+    // Wyrównanie histogramu funkcji plamki: eq(f) = jaka część komórki ma
+    // wartość większą niż f. Bez tego pokrycie czernią nie byłoby liniowe
+    // względem jasności i półcienie wychodziłyby za ciemne.
+    const S = 96;
+    const samples = new Float32Array(S * S);
+    for (let j = 0; j < S; j++) {
+      for (let i = 0; i < S; i++) {
+        samples[j * S + i] = spot((i + 0.5) / S, (j + 0.5) / S);
+      }
+    }
+    samples.sort();
+    const eq = new Float32Array(EQ_N);
+    for (let k = 0; k < EQ_N; k++) {
+      const f = -1 + 2 * k / (EQ_N - 1);
+      let lo = 0, hi = samples.length;
+      while (lo < hi) {                       // pierwszy indeks o wartości > f
+        const mid = (lo + hi) >> 1;
+        if (samples[mid] <= f) lo = mid + 1; else hi = mid;
+      }
+      eq[k] = (samples.length - lo) / samples.length;
+    }
+
+    return function screenAt(x, y) {
+      const u = x * ca + y * sa;
+      const v = y * ca - x * sa;
+      const iu = ((u - Math.floor(u)) * COS_N) | 0;
+      const iv = ((v - Math.floor(v)) * COS_N) | 0;
+      const f = 0.5 * (COS_LUT[iu] + COS_LUT[iv]);
+      let k = ((f + 1) * 0.5 * (EQ_N - 1) + 0.5) | 0;
+      if (k < 0) k = 0; else if (k >= EQ_N) k = EQ_N - 1;
+      return eq[k];
+    };
+  }
 
   // --- LUT korekt wstępnych: jasność, kontrast, gamma, inwersja ---
   function buildAdjustLut(p) {
@@ -90,7 +135,7 @@ const DITHER = (() => {
   }
 
   // --- Dithering macierzowy (ordered/halftone/losowy/progowy) ---
-  function orderedDither(gray, mask, w, h, params, matrix) {
+  function orderedDither(gray, mask, w, h, params, matrix, screenAt) {
     const out = new Uint8Array(w * h);
     const n = matrix ? matrix.length : 0;
     const n2 = n * n;
@@ -103,6 +148,8 @@ const DITHER = (() => {
         let v = gray[i];
         if (matrix) {
           v += s * (((matrix[y % n][x % n] + 0.5) / n2) - 0.5) * 255;
+        } else if (screenAt) {
+          v += s * (screenAt(x, y) - 0.5) * 255;
         } else if (params.algorithm === 'random') {
           v += s * (Math.random() - 0.5) * 255;
         }
@@ -149,13 +196,13 @@ const DITHER = (() => {
     'bayer-2': () => bayerMatrix(2),
     'bayer-4': () => bayerMatrix(4),
     'bayer-8': () => bayerMatrix(8),
-    'halftone': () => HALFTONE_8,
   };
 
   /**
    * Główne wejście. imageData → nowe ImageData (ta sama rozdzielczość).
    * params: { algorithm, threshold, brightness, contrast, gamma, invert,
-   *           strength (0..1), serpentine, alphaThreshold }
+   *           strength (0..1), serpentine, alphaThreshold,
+   *           screenSize (px), screenAngle (stopnie) — tylko dla 'halftone' }
    */
   function process(imageData, params) {
     const { width: w, height: h, data } = imageData;
@@ -176,6 +223,9 @@ const DITHER = (() => {
     let bw;
     if (KERNELS[params.algorithm]) {
       bw = errorDiffuse(gray, mask, w, h, params);
+    } else if (params.algorithm === 'halftone') {
+      const screenAt = buildHalftoneScreen(params.screenSize, params.screenAngle);
+      bw = orderedDither(gray, mask, w, h, params, null, screenAt);
     } else {
       const matrix = MATRIX_ALGOS[params.algorithm] ? MATRIX_ALGOS[params.algorithm]() : null;
       bw = orderedDither(gray, mask, w, h, params, matrix);

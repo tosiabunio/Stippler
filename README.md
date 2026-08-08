@@ -15,6 +15,7 @@ Built to convert sprites for [Playdate](https://play.date/) ports of PC DOS game
   - *Ordered:* Bayer 2×2 / 4×4 / 8×8, Halftone (clustered dot)
   - *Basic:* fixed threshold, random noise
 - **Live preview** — every parameter change re-renders instantly
+- **Real halftone screen** — the clustered-dot raster is generated from a spot function at full image resolution, with adjustable screen size (2–32 px between dot centres) and screen angle (0–90°). Tone reproduction is histogram-equalized, so black coverage stays linear with brightness at any angle.
 - **Adjustable parameters**: threshold, brightness, contrast, gamma, dither strength, pixel scale (1–16 for chunky pixels), alpha threshold, invert, serpentine scanning
 - **Transparency-aware**: transparent pixels are excluded from error diffusion, so sprite edges stay clean; output alpha is binarized (fully opaque or fully transparent)
 - **Preview tools**: hold <kbd>Space</kbd> to compare with the original, mouse-wheel zoom with pixel-perfect rendering, checkerboard background

@@ -13,6 +13,8 @@
     contrast: $('contrast'),
     gamma: $('gamma'),
     strength: $('strength'),
+    screenSize: $('screen-size'),
+    screenAngle: $('screen-angle'),
     pixelScale: $('pixel-scale'),
     alphaThreshold: $('alpha-threshold'),
     invert: $('invert'),
@@ -31,7 +33,8 @@
 
   const DEFAULTS = {
     threshold: 128, brightness: 0, contrast: 0, gamma: 1,
-    strength: 100, pixelScale: 1, alphaThreshold: 128,
+    strength: 100, screenSize: 8, screenAngle: 45,
+    pixelScale: 1, alphaThreshold: 128,
     invert: false, serpentine: false,
   };
 
@@ -53,6 +56,8 @@
       contrast: +els.contrast.value,
       gamma: +els.gamma.value,
       strength: +els.strength.value / 100,
+      screenSize: +els.screenSize.value,
+      screenAngle: +els.screenAngle.value,
       alphaThreshold: +els.alphaThreshold.value,
       invert: els.invert.checked,
       serpentine: els.serpentine.checked,
@@ -159,13 +164,19 @@
 
   // --- Widoczność parametrów zależnych od algorytmu ---
 
+  function toggleRow(labelId, input, visible) {
+    $(labelId).style.display = visible ? '' : 'none';
+    input.style.display = visible ? '' : 'none';
+  }
+
   function updateParamVisibility() {
     const algo = els.algorithm.value;
     const isDiffusion = !!DITHER.KERNELS[algo];
+    const isHalftone = algo === 'halftone';
     $('row-serpentine').style.display = isDiffusion ? '' : 'none';
-    const strengthVisible = algo !== 'threshold';
-    $('row-strength').style.display = strengthVisible ? '' : 'none';
-    els.strength.style.display = strengthVisible ? '' : 'none';
+    toggleRow('row-strength', els.strength, algo !== 'threshold');
+    toggleRow('row-screen-size', els.screenSize, isHalftone);
+    toggleRow('row-screen-angle', els.screenAngle, isHalftone);
   }
 
   // --- Podpisy wartości suwaków ---
@@ -177,6 +188,8 @@
       let v = input.value;
       if (input === els.gamma) v = (+v).toFixed(2);
       if (input === els.strength) v = v + '%';
+      if (input === els.screenSize) v = v + ' px';
+      if (input === els.screenAngle) v = v + '°';
       out.textContent = v;
     });
   }
@@ -212,6 +225,8 @@
     els.contrast.value = DEFAULTS.contrast;
     els.gamma.value = DEFAULTS.gamma;
     els.strength.value = DEFAULTS.strength;
+    els.screenSize.value = DEFAULTS.screenSize;
+    els.screenAngle.value = DEFAULTS.screenAngle;
     els.pixelScale.value = DEFAULTS.pixelScale;
     els.alphaThreshold.value = DEFAULTS.alphaThreshold;
     els.invert.checked = DEFAULTS.invert;
